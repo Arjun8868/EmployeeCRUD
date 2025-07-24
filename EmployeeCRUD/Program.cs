@@ -3,6 +3,7 @@ using EmployeeCRUD.Mappings;
 using EmployeeCRUD.Middlewares;
 using EmployeeCRUD.Repository;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.IdentityModel.Tokens;
@@ -36,7 +37,25 @@ builder.Services.AddDbContext<AuthDbContext>(options =>
 
 builder.Services.AddScoped<IEmployeesRepository, SqlEmployeesRepository>();
 
+builder.Services.AddScoped<ITokenRepository, TokenRepository>();
+
 builder.Services.AddAutoMapper(typeof(AutoMapperProfiles));
+
+builder.Services.AddIdentityCore<IdentityUser>()
+                .AddRoles<IdentityRole>()
+                .AddTokenProvider<DataProtectorTokenProvider<IdentityUser>>("EmpProvider")
+                .AddEntityFrameworkStores<AuthDbContext>()
+                .AddDefaultTokenProviders();
+
+builder.Services.Configure<IdentityOptions>(options =>
+{
+    options.Password.RequireDigit = false;
+    options.Password.RequireLowercase = false;
+    options.Password.RequireNonAlphanumeric = false;
+    options.Password.RequireUppercase = false;
+    options.Password.RequiredLength = 6;
+    options.Password.RequiredUniqueChars = 1;
+});
 
 //Regisistering Authentication service
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
@@ -49,7 +68,7 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             ValidateLifetime = true,
             ValidateIssuerSigningKey = true,
             ValidIssuer = builder.Configuration["Jwt:Issuer"],
-            ValidAudience = builder.Configuration["Jwt:Audience"],
+            ValidAudiences = new[] { builder.Configuration["Jwt:Audience"] },
             IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"]))
         };
     });
