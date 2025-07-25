@@ -26,7 +26,7 @@ namespace EmployeeCRUD.Controllers
             this.logger = logger;
         }
         [HttpGet]
-        [Authorize(Roles ="Reader")]
+        [Authorize(Roles ="Reader, Writer")]
         public async Task<IActionResult> GetEmployees([FromQuery] string? FilterOn, [FromQuery] string? FilterQuery)
         {
             //logger.LogError("Fetching all employees from the database.");
@@ -41,7 +41,7 @@ namespace EmployeeCRUD.Controllers
 
         [HttpGet]
         [Route("{Id:int}")]
-        [Authorize(Roles = "Reader")]
+        [Authorize(Roles = "Reader, Writer")]
         public async Task<IActionResult> GetEmployeesById(int Id)
         {
             var employee = await _employeesRepository.GetEmployeesById(Id);
