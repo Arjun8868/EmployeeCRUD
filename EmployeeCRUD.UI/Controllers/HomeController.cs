@@ -8,9 +8,12 @@ namespace EmployeeCRUD.UI.Controllers
     {
         private readonly ILogger<HomeController> _logger;
 
-        public HomeController(ILogger<HomeController> logger)
+        private readonly IHttpClientFactory _httpClientFactory;
+
+        public HomeController(ILogger<HomeController> logger, IHttpClientFactory httpClientFactory)
         {
             _logger = logger;
+            _httpClientFactory = httpClientFactory;
         }
 
         public IActionResult Index()
@@ -20,6 +23,7 @@ namespace EmployeeCRUD.UI.Controllers
 
         public IActionResult Privacy()
         {
+            
             return View();
         }
 

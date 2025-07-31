@@ -38,9 +38,6 @@ namespace EmployeeCRUD.Repository
                 expires: DateTime.Now.AddMinutes(15),
                 signingCredentials: credentials);
 
-            string tokenjwt = new JwtSecurityTokenHandler().WriteToken(token);
-            int a = 18;
-
             return new JwtSecurityTokenHandler().WriteToken(token);
         }
     }

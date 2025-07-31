@@ -4,12 +4,14 @@ using EmployeeCRUD.Middlewares;
 using EmployeeCRUD.Repository;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using Serilog;
 using System.Text;
+using System.Threading.RateLimiting;
 
 
 var builder = WebApplication.CreateBuilder(args);
@@ -70,11 +72,13 @@ builder.Services.AddScoped<ITokenRepository, TokenRepository>();
 
 builder.Services.AddAutoMapper(typeof(AutoMapperProfiles));
 
+
 builder.Services.AddIdentityCore<IdentityUser>()
                 .AddRoles<IdentityRole>()
                 .AddTokenProvider<DataProtectorTokenProvider<IdentityUser>>("EmpProvider")
                 .AddEntityFrameworkStores<AuthDbContext>()
                 .AddDefaultTokenProviders();
+
 
 builder.Services.Configure<IdentityOptions>(options =>
 {
@@ -102,6 +106,32 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
         };
     });
 
+//rate limiting configuration
+builder.Services.AddRateLimiter(options =>
+{
+    options.AddFixedWindowLimiter("fixed", opt =>
+    {
+        opt.Window = TimeSpan.FromSeconds(10);// Time window for rate limiting
+        opt.PermitLimit = 5;// Maximum number of requests allowed in the time window
+        opt.QueueLimit = 2; // Maximum number of requests that can be queued
+        opt.QueueProcessingOrder = QueueProcessingOrder.OldestFirst;// Process oldest requests first in the queue
+
+    });
+    options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
+   
+});
+
+//CORS configuration to allow all origins, methods, and headers
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowAllOrigins", policy => 
+    {
+        policy.AllowAnyOrigin()
+              .AllowAnyHeader()
+              .AllowAnyMethod();
+    });         
+});
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
@@ -111,6 +141,8 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
+app.UseCors("AllowAllOrigins"); // Enable CORS with the defined policy
+
 //Custom middleware for exception handling
 app.UseMiddleware<ExceptionHandlerMiddleware>();
 
@@ -118,6 +150,8 @@ app.UseHttpsRedirection();
 
 app.UseAuthentication();
 app.UseAuthorization();
+
+app.UseRateLimiter();
 
 app.MapControllers();
 
