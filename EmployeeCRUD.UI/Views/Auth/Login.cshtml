@@ -1,0 +1,17 @@
+﻿@model EmployeeCRUD.UI.Models.DTO.LoginDTO
+<h1 class="mt-3">Login</h1>
+<form method="post">
+    <div class="mt-3">
+        <label class="form-label">Username</label>
+        <input type="text" class="form-control" asp-for="UserName" />
+    </div>
+
+    <div class="mt-3">
+        <label class="form-label">Password</label>
+        <input type="password" class="form-control" asp-for="Password" />
+    </div>
+
+    <div class="mt-3">
+        <button type="submit" class="btn btn-primary">Login</button>
+    </div>
+</form>
