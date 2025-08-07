@@ -35,14 +35,22 @@ namespace EmployeeCRUD.UI.Controllers
                 Content= new StringContent(JsonSerializer.Serialize(registeruserviewmodel), Encoding.UTF8, "application/json")
             };
             var httpResponse = await client.SendAsync(httpRequest);
-            httpResponse.EnsureSuccessStatusCode();
-            var response=httpResponse.Content.ReadFromJsonAsync<RegisterDTO>();
-            if (response != null)
+
+            if (httpResponse.IsSuccessStatusCode)
             {
-               return RedirectToAction("Index","Home");
+                var response = await httpResponse.Content.ReadAsStringAsync();
+                if (response.Contains("User was registered! Please login"))
+                {
+                    return RedirectToAction("Index", "Home");
+                }
+            }
+            else
+            {
+                string error = await httpResponse.Content.ReadAsStringAsync();
+                ModelState.AddModelError(string.Empty, $"Registration failed: {error}");
             }
 
-            return View();
+            return View(registeruserviewmodel);
         }
 
         [HttpGet]
@@ -51,27 +59,27 @@ namespace EmployeeCRUD.UI.Controllers
             return View();
         }
         [HttpPost]
-        public async Task<IActionResult> Login(LoginDTO logindto)
+        public async Task<IActionResult> Login(LoginUserViewModel loginuserviewmodel)
         {
            var client = _httpClientFactory.CreateClient();
             var httpRequest = new HttpRequestMessage()
             {
                 Method = HttpMethod.Post,
                 RequestUri = new Uri("http://localhost:5053/api/Auth/Login"),
-                Content = new StringContent(JsonSerializer.Serialize(logindto), Encoding.UTF8, "application/json")
+                Content = new StringContent(JsonSerializer.Serialize(loginuserviewmodel), Encoding.UTF8, "application/json")
             };
             var httpResponse = await client.SendAsync(httpRequest);
             if (httpResponse.IsSuccessStatusCode)
             {
-                var response = await httpResponse.Content.ReadAsStringAsync();
-                if (response != null)
+                var response = await httpResponse.Content.ReadFromJsonAsync<LoginResponseDTO>();
+                if (response != null && !string.IsNullOrEmpty(response.JWTToken))
                 {
-                    
-                    return RedirectToAction("Index", "Home");
+                    HttpContext.Session.SetString("JWToken", response.JWTToken);
+                    return RedirectToAction("Index", "Employees");
                 }
             }
             ModelState.AddModelError("", "Invalid login attempt.");
-            return View(logindto);
+            return View(loginuserviewmodel);
         }
 
     }

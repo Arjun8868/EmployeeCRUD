@@ -2,6 +2,7 @@
 using EmployeeCRUD.UI.Models.DTO;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Filters;
 using System.Net.Http;
 using System.Text;
 using System.Text.Json;
@@ -11,18 +12,30 @@ namespace EmployeeCRUD.UI.Controllers
     public class EmployeesController : Controller
     {
         private readonly IHttpClientFactory _httpClientFactory;
+
+        // This field will hold the JWT token retrieved from the session
+        private string _jwtToken;
+
         public EmployeesController(IHttpClientFactory _httpClientFactory)
         {
             this._httpClientFactory = _httpClientFactory;
+        }
+        public override void OnActionExecuting(ActionExecutingContext context)
+        {
+            _jwtToken = HttpContext.Session.GetString("JWToken");
+            base.OnActionExecuting(context);
         }
 
         [HttpGet]
         public async Task<IActionResult> Index()
         {
+            //var token = HttpContext.Session.GetString("JWToken");
+
             List<EmployeeDTO> employees = new List<EmployeeDTO>();
             try
             {
                 var client = _httpClientFactory.CreateClient(); // Create an HTTP client to communicate with the API
+                client.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", _jwtToken); // Set the authorization header with the JWT token
                 var httpresponse = await client.GetAsync("http://localhost:5053/api/employees"); // API call to get employees
                 httpresponse.EnsureSuccessStatusCode(); // Ensure the response is successful, if it is false, it throws an exception
                 employees.AddRange(await httpresponse.Content.ReadFromJsonAsync<IEnumerable<EmployeeDTO>>());//Deserialize the response content to a list of EmployeeDTO
@@ -47,6 +60,7 @@ namespace EmployeeCRUD.UI.Controllers
         public async Task<IActionResult> Add(AddEmployeeViewModel addEmployeesviewmodel)
         {
             var client = _httpClientFactory.CreateClient();
+            client.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", _jwtToken);
             var httpRequestMessage = new HttpRequestMessage()
             {
                 Method = HttpMethod.Post, // Set the HTTP method to POST
@@ -66,6 +80,7 @@ namespace EmployeeCRUD.UI.Controllers
         public async Task<IActionResult> Edit(int id)
         {
             var client = _httpClientFactory.CreateClient();
+            client.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", _jwtToken);
             var response = await client.GetFromJsonAsync<EmployeeDTO>($"http://localhost:5053/api/employees/{id}"); // Get the employee details by ID
             if (response is not null)
             {
@@ -79,6 +94,7 @@ namespace EmployeeCRUD.UI.Controllers
         public async Task<IActionResult> Edit(EmployeeDTO request)
         {
             var client = _httpClientFactory.CreateClient();
+            client.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", _jwtToken);
             var httpRequestMessage = new HttpRequestMessage()
             {
                 Method = HttpMethod.Put, // Set the HTTP method to PUT
@@ -100,6 +116,7 @@ namespace EmployeeCRUD.UI.Controllers
         public async Task<IActionResult> Delete(EmployeeDTO request)
         {
             var client = _httpClientFactory.CreateClient();
+            client.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", _jwtToken);
             var httpResponseMessage=await client.DeleteAsync($"http://localhost:5053/api/employees/{request.Id}");
             httpResponseMessage.EnsureSuccessStatusCode();
             var response = await httpResponseMessage.Content.ReadFromJsonAsync<EmployeeDTO>(); // Read the response content as EmployeeDTO

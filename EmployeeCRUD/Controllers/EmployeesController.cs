@@ -30,7 +30,7 @@ namespace EmployeeCRUD.Controllers
             this.logger = logger;
         }
         [HttpGet]
-        //[Authorize(Roles ="Reader, Writer")]
+        [Authorize(Roles ="Reader, Writer")]
         public async Task<IActionResult> GetEmployees([FromQuery] string? FilterOn, [FromQuery] string? FilterQuery)
         {
             //logger.LogError("Fetching all employees from the database.");
@@ -45,7 +45,7 @@ namespace EmployeeCRUD.Controllers
 
         [HttpGet]
         [Route("{Id:int}")]
-        //[Authorize(Roles = "Reader, Writer")]
+        [Authorize(Roles = "Reader, Writer")]
         public async Task<IActionResult> GetEmployeesById(int Id)
         {
             var employee = await _employeesRepository.GetEmployeesById(Id);
@@ -56,7 +56,7 @@ namespace EmployeeCRUD.Controllers
         }
 
         [HttpPost]
-        //[Authorize(Roles = "Writer")]
+        [Authorize(Roles = "Writer")]
         public async Task<IActionResult> AddEmployeesAsync([FromBody] AddEmployeesDTO Addemployeesdto)
         {
            var employeedomain = Mapper.Map<Employee>(Addemployeesdto);
@@ -71,7 +71,7 @@ namespace EmployeeCRUD.Controllers
         }
         [HttpPut]
         [Route("{id:int}")]
-        //[Authorize(Roles = "Writer")]
+        [Authorize(Roles = "Writer")]
         public async Task<IActionResult> UpdateEmployeesAsync([FromRoute]int id, [FromBody] UpdateEmployeesDTO updateemployeesdto)
         {
             var employeedomain = Mapper.Map<Employee>(updateemployeesdto);
@@ -89,7 +89,7 @@ namespace EmployeeCRUD.Controllers
         }
         [HttpDelete]
         [Route("{id:int}")]
-        //[Authorize(Roles = "Writer")]
+        [Authorize(Roles = "Writer")]
         public async Task<IActionResult> DeleteEmployeesAsync([FromRoute] int id)
         {
             var employee = await _employeesRepository.DeleteEmployeesAsync(id);
