@@ -1,19 +1,26 @@
-﻿using EmployeeCRUD.UI.Models;
+﻿using EmployeeCRUD.UI.Helpers;
+using EmployeeCRUD.UI.Models;
 using EmployeeCRUD.UI.Models.DTO;
 using Microsoft.AspNetCore.Mvc;
 using System.Net.Http;
 using System.Text;
 using System.Text.Json;
+using static System.Net.WebRequestMethods;
 
 namespace EmployeeCRUD.UI.Controllers
 {
     public class AuthController : Controller
     {
         private readonly IHttpClientFactory _httpClientFactory;
-        public AuthController(IHttpClientFactory _httpClientFactory)
+        private readonly IConfiguration _configuration;
+
+        public AuthController(IHttpClientFactory _httpClientFactory, IConfiguration _configuration)
         {
             this._httpClientFactory = _httpClientFactory;
+            this._configuration = _configuration;
+
         }
+
         public IActionResult Index()
         {
             return View();
@@ -31,7 +38,7 @@ namespace EmployeeCRUD.UI.Controllers
             var httpRequest = new HttpRequestMessage()
             {
                 Method = HttpMethod.Post,
-                RequestUri = new Uri("http://localhost:5053/api/Auth/Register"),
+                RequestUri = new Uri($"{ApiConstants.ApiBaseUrl}/api/Auth/Register"),
                 Content= new StringContent(JsonSerializer.Serialize(registeruserviewmodel), Encoding.UTF8, "application/json")
             };
             var httpResponse = await client.SendAsync(httpRequest);
@@ -65,7 +72,7 @@ namespace EmployeeCRUD.UI.Controllers
             var httpRequest = new HttpRequestMessage()
             {
                 Method = HttpMethod.Post,
-                RequestUri = new Uri("http://localhost:5053/api/Auth/Login"),
+                RequestUri = new Uri($"{ApiConstants.ApiBaseUrl}/api/Auth/Login"),
                 Content = new StringContent(JsonSerializer.Serialize(loginuserviewmodel), Encoding.UTF8, "application/json")
             };
             var httpResponse = await client.SendAsync(httpRequest);

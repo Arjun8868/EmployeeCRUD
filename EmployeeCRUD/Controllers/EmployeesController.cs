@@ -100,9 +100,8 @@ namespace EmployeeCRUD.Controllers
             }
 
             else
-                return NotFound("Employee not found for delete.");
+                return NotFound("Employee not found for deletion.");
         }
-
        
 
     }

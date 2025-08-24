@@ -1,4 +1,5 @@
-﻿using EmployeeCRUD.UI.Models;
+﻿using EmployeeCRUD.UI.Helpers;
+using EmployeeCRUD.UI.Models;
 using EmployeeCRUD.UI.Models.DTO;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -15,6 +16,8 @@ namespace EmployeeCRUD.UI.Controllers
 
         // This field will hold the JWT token retrieved from the session
         private string _jwtToken;
+
+       
 
         public EmployeesController(IHttpClientFactory _httpClientFactory)
         {
@@ -36,7 +39,7 @@ namespace EmployeeCRUD.UI.Controllers
             {
                 var client = _httpClientFactory.CreateClient(); // Create an HTTP client to communicate with the API
                 client.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", _jwtToken); // Set the authorization header with the JWT token
-                var httpresponse = await client.GetAsync("http://localhost:5053/api/employees"); // API call to get employees
+                var httpresponse = await client.GetAsync($"{ApiConstants.ApiBaseUrl}/api/employees"); // API call to get employees
                 httpresponse.EnsureSuccessStatusCode(); // Ensure the response is successful, if it is false, it throws an exception
                 employees.AddRange(await httpresponse.Content.ReadFromJsonAsync<IEnumerable<EmployeeDTO>>());//Deserialize the response content to a list of EmployeeDTO
 
@@ -64,7 +67,7 @@ namespace EmployeeCRUD.UI.Controllers
             var httpRequestMessage = new HttpRequestMessage()
             {
                 Method = HttpMethod.Post, // Set the HTTP method to POST
-                RequestUri = new Uri("http://localhost:5053/api/employees"), // Set the request URI to the API endpoint
+                RequestUri = new Uri($"{ApiConstants.ApiBaseUrl}/api/employees"), // Set the request URI to the API endpoint
                 Content = new StringContent(JsonSerializer.Serialize(addEmployeesviewmodel), Encoding.UTF8, "application/json")// Serialize the view model to JSON)
             };
             var httpResponseMessage = await client.SendAsync(httpRequestMessage);
@@ -81,7 +84,7 @@ namespace EmployeeCRUD.UI.Controllers
         {
             var client = _httpClientFactory.CreateClient();
             client.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", _jwtToken);
-            var response = await client.GetFromJsonAsync<EmployeeDTO>($"http://localhost:5053/api/employees/{id}"); // Get the employee details by ID
+            var response = await client.GetFromJsonAsync<EmployeeDTO>($"{ApiConstants.ApiBaseUrl}/api/employees/{id}"); // Get the employee details by ID
             if (response is not null)
             {
                 return View(response);
@@ -98,7 +101,7 @@ namespace EmployeeCRUD.UI.Controllers
             var httpRequestMessage = new HttpRequestMessage()
             {
                 Method = HttpMethod.Put, // Set the HTTP method to PUT
-                RequestUri = new Uri($"http://localhost:5053/api/employees/{request.Id}"), // Set the request URI to the API endpoint with the employee ID
+                RequestUri = new Uri($"{ApiConstants.ApiBaseUrl}/api/employees/{request.Id}"), // Set the request URI to the API endpoint with the employee ID
                 Content = new StringContent(JsonSerializer.Serialize(request), Encoding.UTF8, "application/json") // Serialize the request object to JSON
             };
             var httpResponseMessage = await client.SendAsync(httpRequestMessage); // Send the HTTP request asynchronously
@@ -117,7 +120,7 @@ namespace EmployeeCRUD.UI.Controllers
         {
             var client = _httpClientFactory.CreateClient();
             client.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", _jwtToken);
-            var httpResponseMessage=await client.DeleteAsync($"http://localhost:5053/api/employees/{request.Id}");
+            var httpResponseMessage=await client.DeleteAsync($"{ApiConstants.ApiBaseUrl}/api/employees/{request.Id}");
             httpResponseMessage.EnsureSuccessStatusCode();
             var response = await httpResponseMessage.Content.ReadFromJsonAsync<EmployeeDTO>(); // Read the response content as EmployeeDTO
             if (response is not null)

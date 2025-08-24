@@ -151,6 +151,7 @@ app.UseHttpsRedirection();
 app.UseAuthentication();
 app.UseAuthorization();
 
+// Enable rate limiting middleware
 app.UseRateLimiter();
 
 app.MapControllers();
